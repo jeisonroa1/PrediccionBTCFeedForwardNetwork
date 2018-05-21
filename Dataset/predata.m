@@ -1,4 +1,4 @@
-%% Pre - procesamiento de la información
+%% Pre - procesamiento de la informaciÃ³n
 clear all; close all; clc;
 load ('predata.mat');
 
@@ -20,6 +20,7 @@ for i=1:length(precio)
 end
 
 volumen = fliplr(volumen);
+
 
 % precioval = precio(1101:length(precio));
 % minimoval = minimo(1101:length(precio));
