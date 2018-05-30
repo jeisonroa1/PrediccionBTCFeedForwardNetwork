@@ -1,4 +1,4 @@
-%% Pre - procesamiento de la información
+%% Pre - procesamiento de la información 
 clear all; close all; clc;
 load ('predata.mat');
 
