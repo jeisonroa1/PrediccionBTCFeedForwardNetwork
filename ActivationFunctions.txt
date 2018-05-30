@@ -1,4 +1,3 @@
-Otras funciones de activación que pueden ser usadas.
-
+Otras funciones de activaciÃ³n que pueden ser usadas.
 
 hardlim, logsig, poslin, purelin, radbas, satlin, softmax, tansig and tribas
