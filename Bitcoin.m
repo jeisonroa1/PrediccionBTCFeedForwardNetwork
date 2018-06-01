@@ -1,26 +1,27 @@
-%% Entrenamiento y validaci髇 de arquitecturas (MLP) para la predicci髇 BTC
+%% Entrenamiento y validaci贸n de arquitecturas (MLP) para la predicci贸n BTC
 %% Jeison Ivan Roa Mora - Diego Barragan
+
 
 clear all; close all; clc;
 load ('data.mat');
-T1 = 8;                                                % Periodo R醦ido
+T1 = 8;                                                % Periodo R谩pido
 T11 = 15;                                              % Periodos MACD Lento
 T2 = 40;                                               % Periodo Lento
-%% Reducci髇 del Batch (Nota: Cambiar para efectos de una normalizaci髇 adecuada)
+%% Reducci贸n del Batch (Nota: Cambiar para efectos de una normalizaci贸n adecuada)
 n = 60;    % Default: 1  
 m = 1050; % Default: 1604 Usando 100% de los datos
 precio = precio(n:m);
 minimo = minimo(n:m);
 maximo = maximo(n:m);
 volumen = volumen(n:m);
-%% Se馻l de Volumen (Elimina valores erroneos)
+%% Se帽al de Volumen (Elimina valores erroneos)
 
 for i =1:length(volumen)
     if isnan(volumen(i))== 1
         volumen(i)= 0;
     end
 end
-%% Se馻les Osciladores Estoc醩ticos
+%% Se帽ales Osciladores Estoc谩sticos
 % Oscilador Rapido T1
 for i = 1:(length(precio)-T1)
 OscEr(i+T1) = (precio(i+T1)- min(precio(i:i+T1)))/(max(precio(i:i+T1))-min(precio(i:i+T1)));
@@ -40,14 +41,14 @@ for i =1:length(OscEl)
     end
 end
 
-%% Se馻les MACD
-% Se馻l MACD Rapido
+%% Se帽ales MACD
+% Se帽al MACD Rapido
 EMA11 = tsmovavg(precio,'e',T1);
 EMA12 = tsmovavg(precio,'e',T2);
 dif1 = EMA11-EMA12;
 MACDr = tsmovavg(dif1(40:length(dif1)),'e',9);
 MACDr = [zeros(1,39) MACDr];
-% Se馻l MACD lento
+% Se帽al MACD lento
 
 EMA21 = tsmovavg(precio,'e',T11);
 EMA22 = tsmovavg(precio,'e',T2);
@@ -64,7 +65,7 @@ for i =1:length(MACDl)
     end
 end
 
-%% Se馻l Indicador RSI
+%% Se帽al Indicador RSI
 for i = 1:length(precio)-1
     
     if precio(i+1) > precio(i)
@@ -91,7 +92,7 @@ for i =1:length(RSI)
     end
 end
 
-%% Se馻l A/D Oscilator
+%% Se帽al A/D Oscilator
 
 for i = 1:length(precio)
 ADosc(i) = (((precio(i)-minimo(i))-(maximo(i)-precio(i)))/((maximo(i)-precio(i))))*volumen(i);
@@ -105,7 +106,7 @@ for i =1:length(ADosc)
     end
 end
 
-%% Se馻l ROC
+%% Se帽al ROC
 
 for i = 1:length(precio)-T1
 ROC(i+T1) = ((precio(i+T1)-precio(i))/precio(i))*100;
@@ -119,7 +120,7 @@ for i =1:length(ROC)
     end
 end
 
-%% Normalizaci髇 de las entradas
+%% Normalizaci贸n de las entradas
 
 precioN = (precio - min(precio))/(max(precio)-min(precio));
 preciopasadoN = [0 precioN(1:length(precioN)-1)];
@@ -134,9 +135,9 @@ ADoscN = (ADosc - min(ADosc))/(max(ADosc)-min(ADosc));
 minimoN = (minimo - min(minimo))/(max(minimo)-min(minimo));
 maximoN = (maximo - min(maximo))/(max(maximo)-min(maximo));
 
-%% Generaci髇 matriz de entrenamiento  y validaci髇
-% a = inicio de datos de entrenamiento. b+1 = inicio datos de validaci髇.
-% Verificar Linea 9. Debe tener coherencia con el tama駉 del batch (m-n).
+%% Generaci贸n matriz de entrenamiento  y validaci贸n
+% a = inicio de datos de entrenamiento. b+1 = inicio datos de validaci贸n.
+% Verificar Linea 9. Debe tener coherencia con el tama帽o del batch (m-n).
 p = round((m-n)*0.7);
 a = 1;     % Default: 1
 b = p;     % Default: 1200  si en la linea 9 se aprovecha el 100%
@@ -145,18 +146,18 @@ a = a+40;  % Se descartan los primeros 40 datos dado que son cero (MACD)
 entradas = [precioN(a:b) ; preciopasadoN(a:b) ; volumenN(a:b) ; MACDrN(a:b) ; MACDlN(a:b); ROCN(a:b); RSIN(a:b); OscErN(a:b); OscElN(a:b) ; ADoscN(a:b) ; minimoN(a:b) ; maximoN(a:b)];
 salidas = [precioN(a+1:b) precioN(b)];
 
-%Validaci髇
+%Validaci贸n
 entradasVal = [precioN(b+1:length(precioN)) ; preciopasadoN(b+1:length(precioN)) ; volumenN(b+1:length(precioN)) ; MACDrN(b+1:length(precioN)) ; MACDlN(b+1:length(precioN)); ROCN(b+1:length(precioN)); RSIN(b+1:length(precioN)); OscErN(b+1:length(precioN)); OscElN(b+1:length(precioN)) ; ADoscN(b+1:length(precioN)) ; minimoN(b+1:length(precioN)) ; maximoN(b+1:length(precioN))];
 salidasVal = [precioN(b+2:length(precioN)) precioN(length(precioN))];
 
 %% Busqueda de arquitecturas
-%Creaci髇 y Entrenamiento de la red
+%Creaci贸n y Entrenamiento de la red
 PR = [0 1;0 1;0 1;0 1;0 1;0 1;0 1;0 1;0 1;0 1;0 1;0 1]; %Universos de entradas
 ARC = [10 5 1]; 
 net=newff(PR,ARC,{'logsig' 'logsig' 'logsig'},'trainlm','learngdm','mse');% Se genera la red neuronal a entrenar y se asignan los parametros de la misma
 [net,tr] = train(net,entradas,salidas); % se realiza el entrenamiento de la red neuronal con base en los datos
 
-%% Validaci髇
+%% Validaci贸n
 [Y] = sim(net,entradasVal);   % Cambiar por entradas para validar con datos Ent.
 acumulado = 0 ;
 for i=1:length(Y)
@@ -179,7 +180,7 @@ for i=1:length(Y)-1
 end
 ProbTendencia = (aciertos/(length(Y)-1))*100
 
-%% Figuras (Se馻les Ent+val+Predicci髇 )
+%% Figuras (Se帽ales Ent+val+Predicci贸n )
 figure;
 plot (precioN(a:length(precioN)));
 hold on;
@@ -187,20 +188,20 @@ plot ([zeros(1,length(entradas(1,:))) entradasVal(1,:) ],'r');
 hold on;
 plot ([zeros(1,length(entradas(1,:))) Y ],'g');
 set (gca,'fontsize',12); 
-title ('Se馻les de Normalizadas (Entrenamiento + Validaci髇 + Predicci髇)');
+title ('Se帽ales de Normalizadas (Entrenamiento + Validaci贸n + Predicci贸n)');
 xlabel ('Dias');
 ylabel ('Precio');
-legend('Entrenamiento', 'Validaci髇', 'Predicci髇')
+legend('Entrenamiento', 'Validaci贸n', 'Predicci贸n')
 
-%% Zoom Validaci髇
+%% Zoom Validaci贸n
 figure
 plot(salidasVal,'r');   % Cambiar por salidas para validar con datos Ent
 hold on;                % Si se grafica salidas, ignorar figura 1.
 plot (Y)
 set (gca,'fontsize',12); 
-title ('Se馻l de Validaci髇 Vs Predicci髇');
+title ('Se帽al de Validaci贸n Vs Predicci贸n');
 xlabel ('Dias');
 ylabel ('Precio');
-legend('Validaci髇','Predicci髇')
+legend('Validaci贸n','Predicci贸n')
 
 
